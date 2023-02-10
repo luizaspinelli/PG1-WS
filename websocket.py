@@ -6,7 +6,7 @@ from asyncio import Future
 
 from websockets import serve
 
-
+sessions={}
 async def http_handler(path, headers):
     """Route HTTP requests to their handlers"""
     from http import HTTPStatus
@@ -42,20 +42,19 @@ async def echo(websocket):
 async def chat(websocket, sessions):
     """Chat WebSocket handler"""
     remote = websocket.remote_address
-    # print(remote)
     sessions[remote] = websocket
-    print(sessions)
+    print("client conected:", remote)
     try:
         async for message in websocket:
-                for socket in sessions.values():
-                    print(socket)
-                    await socket.send(message)
-    finally:
+            print("client sending message:", remote)
+            for socket in sessions.values():
+                await socket.send(message)
+    except:
+        print("client desconected:", remote)
         del sessions[remote]
 
 async def web_socket_router(websocket, path):
     """Route WebSocket requests to their handlers"""
-    sessions={}
     if path == '/':
         await websocket.close(reason=f'needs a path')
     elif path == '/echo':
